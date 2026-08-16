@@ -1,0 +1,63 @@
+services:
+  eventos-postgres:
+    image: postgres:17.11
+    container_name: eventos-postgres
+    environment:
+      POSTGRES_DB: eventos_db
+      POSTGRES_USER: eventos_user
+      POSTGRES_PASSWORD: eventos_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - eventos_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventos_user -d eventos_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  notificacoes-mongodb:
+    image: mongo:8.0.29
+    container_name: notificacoes-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: notificacoes_admin
+      MONGO_INITDB_ROOT_PASSWORD: notificacoes_password
+      MONGO_INITDB_DATABASE: notificacoes_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - notificacoes_mongodb_data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "--username",
+          "notificacoes_admin",
+          "--password",
+          "notificacoes_password",
+          "--authenticationDatabase",
+          "admin",
+          "--eval",
+          "db.adminCommand({ ping: 1 }).ok"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+volumes:
+  eventos_postgres_data:
+  notificacoes_mongodb_data:
+
+networks:
+  microservices-network:
+    driver: bridge
