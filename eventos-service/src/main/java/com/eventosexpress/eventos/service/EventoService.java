@@ -8,6 +8,7 @@ import com.eventosexpress.eventos.exception.RegraDeNegocioException;
 import com.eventosexpress.eventos.mapper.EventoMapper;
 import com.eventosexpress.eventos.model.Evento;
 import com.eventosexpress.eventos.model.enums.ModalidadeEvento;
+import com.eventosexpress.eventos.model.enums.StatusEvento;
 import com.eventosexpress.eventos.repository.EventoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -103,6 +104,18 @@ public class EventoService {
         }
     }
 
+    private void validarEventoEmRascunho(
+            Evento evento,
+            String operacao
+    ) {
+        if (evento.getStatus() != StatusEvento.RASCUNHO) {
+            throw new RegraDeNegocioException(
+                    "Somente eventos em RASCUNHO podem ser "
+                            + operacao
+            );
+        }
+    }
+
     private boolean campoVazio(String valor) {
         return valor == null || valor.isBlank();
     }
@@ -123,6 +136,79 @@ public class EventoService {
         Evento evento = buscarEntidadePorId(id);
 
         return eventoMapper.toResponse(evento);
+    }
+
+    @Transactional
+    public EventoResponseDTO atualizar(
+            Long id,
+            EventoRequestDTO request
+    ) {
+        Evento evento = buscarEntidadePorId(id);
+
+        validarEventoEmRascunho(
+                evento,
+                "atualizados"
+        );
+
+        validarDadosDoEvento(request);
+        eventoMapper.updateEntity(request, evento);
+
+        Evento eventoAtualizado =
+                eventoRepository.save(evento);
+
+        return eventoMapper.toResponse(eventoAtualizado);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        Evento evento = buscarEntidadePorId(id);
+
+        validarEventoEmRascunho(
+                evento,
+                "excluídos"
+        );
+
+        eventoRepository.delete(evento);
+    }
+
+    @Transactional
+    public EventoResponseDTO publicar(Long id) {
+        Evento evento = buscarEntidadePorId(id);
+
+        validarEventoEmRascunho(
+                evento,
+                "publicados"
+        );
+
+        validarDatas(
+                evento.getDataHoraInicio(),
+                evento.getDataHoraFim()
+        );
+
+        evento.setStatus(StatusEvento.PUBLICADO);
+
+        Evento eventoPublicado =
+                eventoRepository.save(evento);
+
+        return eventoMapper.toResponse(eventoPublicado);
+    }
+
+    @Transactional
+    public EventoResponseDTO cancelar(Long id) {
+        Evento evento = buscarEntidadePorId(id);
+
+        if (evento.getStatus() != StatusEvento.PUBLICADO) {
+            throw new RegraDeNegocioException(
+                    "Somente eventos PUBLICADOS podem ser cancelados"
+            );
+        }
+
+        evento.setStatus(StatusEvento.CANCELADO);
+
+        Evento eventoCancelado =
+                eventoRepository.save(evento);
+
+        return eventoMapper.toResponse(eventoCancelado);
     }
 
 }
