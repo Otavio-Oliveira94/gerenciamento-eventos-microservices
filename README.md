@@ -39,3 +39,25 @@ O dashboard pode ser acessado em:
 ```text
 http://localhost:8761
 ```
+
+## API Gateway
+
+O API Gateway é o ponto único de entrada para chamadas externas da aplicação. Ele utiliza o Eureka para localizar dinamicamente as instâncias dos microservices e encaminha as requisições através do Spring Cloud LoadBalancer.
+
+O Gateway utiliza a porta 8080. As chamadas externas não precisam conhecer as portas internas dos microservices.
+
+### Rotas configuradas
+
+| Rota externa | Serviço de destino |
+|---|---|
+| `/api/eventos/**` | eventos-service |
+| `/api/notificacoes/**` | notificacoes-service |
+
+### Como testar pelo API Gateway
+
+Com todos os componentes em execução, as rotas podem ser testadas pelo Postman:
+
+```text
+GET http://localhost:8080/api/eventos
+GET http://localhost:8080/api/notificacoes
+```
