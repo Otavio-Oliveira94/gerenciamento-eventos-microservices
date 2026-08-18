@@ -5,6 +5,7 @@ import com.eventosexpress.eventos.dto.request.EventoRequestDTO;
 import com.eventosexpress.eventos.dto.response.EventoResponseDTO;
 import com.eventosexpress.eventos.exception.EventoNaoEncontradoException;
 import com.eventosexpress.eventos.exception.RegraDeNegocioException;
+import com.eventosexpress.eventos.integration.notificacoes.service.NotificacaoIntegracaoService;
 import com.eventosexpress.eventos.mapper.EventoMapper;
 import com.eventosexpress.eventos.model.Evento;
 import com.eventosexpress.eventos.model.enums.ModalidadeEvento;
@@ -24,6 +25,7 @@ import java.util.List;
 public class EventoService {
     private final EventoRepository eventoRepository;
     private final EventoMapper eventoMapper;
+    private final NotificacaoIntegracaoService notificacaoIntegracaoService;
 
     @Transactional
     public EventoResponseDTO criar(EventoRequestDTO request) {
@@ -187,8 +189,9 @@ public class EventoService {
 
         evento.setStatus(StatusEvento.PUBLICADO);
 
-        Evento eventoPublicado =
-                eventoRepository.save(evento);
+        Evento eventoPublicado = eventoRepository.save(evento);
+
+        notificacaoIntegracaoService.notificarPublicacao(eventoPublicado);
 
         return eventoMapper.toResponse(eventoPublicado);
     }
@@ -205,8 +208,9 @@ public class EventoService {
 
         evento.setStatus(StatusEvento.CANCELADO);
 
-        Evento eventoCancelado =
-                eventoRepository.save(evento);
+        Evento eventoCancelado = eventoRepository.save(evento);
+
+        notificacaoIntegracaoService.notificarCancelamento(eventoCancelado);
 
         return eventoMapper.toResponse(eventoCancelado);
     }
