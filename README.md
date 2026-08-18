@@ -28,3 +28,14 @@ Primeiramente, os bancos de dados devem ser iniciados na pasta principal:
 
 ```shell
 docker compose up -d
+```
+
+## Discovery Server
+
+O projeto utiliza Netflix Eureka como servidor de descoberta. Os microservices registram seus nomes, endereços e portas no Discovery Server, permitindo que outros componentes localizem suas instâncias sem depender de endereços fixos.
+
+O dashboard pode ser acessado em:
+
+```text
+http://localhost:8761
+```
